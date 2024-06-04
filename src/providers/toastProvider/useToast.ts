@@ -1,10 +1,8 @@
-import { useDispatch, useSelector } from "react-redux";
-import { ToastStoreValue } from "../../store/toastStore/reducer";
-import { addToast, removeToast } from "../../store/toastStore/actions";
+import { useContext } from "react";
+import { ToastContext } from ".";
 
 const useToasts = () => {
-  const toasts = useSelector((state: ToastStoreValue) => state.toasts);
-  const dispatch = useDispatch();
+  const { toasts, setToasts } = useContext(ToastContext);
 
   const createToast = ({ message, type, timeOut }: Omit<ToastData, "id">) => {
     const newToast = {
@@ -14,13 +12,13 @@ const useToasts = () => {
       timeOut,
     };
 
-    dispatch(addToast(newToast));
+    setToasts((currentToasts) => [newToast, ...currentToasts]);
 
     if (timeOut !== undefined) setTimeout(() => deleteToast(newToast.id), timeOut);
   };
 
   const deleteToast = (id: number) => {
-    dispatch(removeToast({ id }));
+    setToasts((currentToasts) => currentToasts.filter((toast) => toast.id !== id));
   };
 
   return { toasts, createToast, deleteToast };

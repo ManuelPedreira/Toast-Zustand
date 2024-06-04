@@ -1,19 +1,25 @@
-import { ReactNode } from "react";
+import { ReactNode, createContext, useState } from "react";
 import { createPortal } from "react-dom";
 import ToastContainer from "../../ui/toastContainer";
-import { Provider as ReduxProvider } from "react-redux";
-import toastsStore from "../../store/toastStore/toastStore";
 
-type ToastProviderPros = {
-  children: ReactNode;
+type ToastContextType = {
+  toasts: ToastData[];
+  setToasts: React.Dispatch<React.SetStateAction<ToastData[]>>;
 };
 
-const ToastProvider = ({ children }: ToastProviderPros) => {
+export const ToastContext = createContext<ToastContextType>({
+  toasts: [],
+  setToasts: () => {},
+});
+
+const ToastProvider = ({ children }: { children: ReactNode }) => {
+  const [toasts, setToasts] = useState<ToastData[]>([]);
+
   return (
-    <ReduxProvider store={toastsStore}>
+    <ToastContext.Provider value={{ toasts, setToasts }}>
       {children}
       {createPortal(<ToastContainer />, document.body)}
-    </ReduxProvider>
+    </ToastContext.Provider>
   );
 };
 

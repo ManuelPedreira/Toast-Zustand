@@ -1,27 +1,30 @@
-import { useContext } from "react";
-import { ToastContext } from ".";
+import { create } from "zustand";
 
-const useToasts = () => {
-  const { toasts, setToasts } = useContext(ToastContext);
+type ToastStoreType = {
+  toasts: ToastData[];
+  createToast: (newToast: Omit<ToastData, "id">) => void;
+  deleteToast: (toastId: number) => void;
+};
 
-  const createToast = ({ message, type, timeOut }: Omit<ToastData, "id">) => {
-    const newToast = {
-      id: Math.random(),
-      message,
-      type,
-      timeOut,
-    };
+const useToasts = create<ToastStoreType>(
+  (set): ToastStoreType => ({
+    toasts: [],
+    createToast: (newToast) => set((state) => ({ toasts: addToast(newToast, state) })),
+    deleteToast: (toastId) => set((state) => ({ toasts: removeToast(toastId, state) })),
+  })
+);
 
-    setToasts((currentToasts) => [newToast, ...currentToasts]);
+const addToast = (newToast: Omit<ToastData, "id">, state: ToastStoreType): ToastData[] => {
+  const newFullToast: ToastData = { ...newToast, id: Math.random() };
 
-    if (timeOut !== undefined) setTimeout(() => deleteToast(newToast.id), timeOut);
-  };
+  if (newFullToast.timeOut !== undefined)
+    setTimeout(() => state.deleteToast(newFullToast.id), newFullToast.timeOut);
 
-  const deleteToast = (id: number) => {
-    setToasts((currentToasts) => currentToasts.filter((toast) => toast.id !== id));
-  };
+  return [newFullToast, ...state.toasts];
+};
 
-  return { toasts, createToast, deleteToast };
+const removeToast = (toastId: number, state: ToastStoreType): ToastData[] => {
+  return state.toasts.filter((toast) => toast.id !== toastId);
 };
 
 export default useToasts;

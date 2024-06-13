@@ -7,27 +7,21 @@ type ToastStoreType = {
 };
 
 const useToasts = create<ToastStoreType>(
-  (set): ToastStoreType => ({
+  (set, get): ToastStoreType => ({
     toasts: [],
-    createToast: (newToast) => set((state) => addToast(newToast, state)),
-    deleteToast: (toastId) => set((state) => removeToast(toastId, state)),
+
+    createToast: (newToast) => {
+      const newFullToast: ToastData = { ...newToast, id: Math.random() };
+
+      set((state) => ({ toasts: [newFullToast, ...state.toasts] }));
+
+      if (newFullToast.timeOut !== undefined)
+        setTimeout(() => get().deleteToast(newFullToast.id), newFullToast.timeOut);
+    },
+
+    deleteToast: (toastId) =>
+      set((state) => ({ toasts: state.toasts.filter((toast) => toast.id !== toastId) })),
   })
 );
-
-const addToast = (
-  newToast: Omit<ToastData, "id">,
-  state: ToastStoreType
-): Partial<ToastStoreType> => {
-  const newFullToast: ToastData = { ...newToast, id: Math.random() };
-
-  if (newFullToast.timeOut !== undefined)
-    setTimeout(() => state.deleteToast(newFullToast.id), newFullToast.timeOut);
-
-  return { toasts: [newFullToast, ...state.toasts] };
-};
-
-const removeToast = (toastId: number, state: ToastStoreType): Partial<ToastStoreType> => {
-  return { toasts: state.toasts.filter((toast) => toast.id !== toastId) };
-};
 
 export default useToasts;
